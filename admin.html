@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Admin</title>
+</head>
+<body>
+    <header class="en-tete bg-red-400">
+    <div class="conteneur en-tete-contenu">
+      <nav aria-label="Navigation principale">
+        <ul class="menu">
+          <li><a href="#admin.html" class="lien-actif">Admin</a></li>
+          <li><a href="index.html" target="_blank">Utilisateur</a></li>
+         
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+
+<div class="grid grid-cols-[40%_60%] min-h-screen">
+<div class="Admin"></div>
+<div class="border-2 rounded-2xl shadow-2xl bg-fuchsia-50">
+  <h1 class=""></h1>
+</div>
+</div>
+<div id="modal" class="hidden">
+<div id="modalContent">
+
+    </div>
+</div>
+
+<script type="module" src="admin.js"></script>
+<script type="module" src ="modification.js"></script>
+<script type="module" src="suppression.js"></script>
+</body>
+</html>

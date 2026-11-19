@@ -1,12 +1,84 @@
-const API_URL =
-  "https://raw.githubusercontent.com/ouchad97/cinetrack-api/main/cinetrack-data.json";
-  
 
-export async function fetchItems() {
-  const res = await fetch(API_URL);
-  if (!res.ok) {
-    throw new Error("Erreur API : " + res.status);
+const BASE_URL = "https://6afad80d730c1d152f3299f7.mockapi.io/api/data/cinetrack";
+
+
+export async function getContents() {
+  const response = await fetch(`${BASE_URL}/movies`);
+
+  if (!response.ok) {
+    throw new Error("Erreur lors du chargement");
   }
-  const data = await res.json();
-  return data;
+
+  return await response.json();
 }
+
+
+export async function getContent(id) {
+  const response = await fetch(`${BASE_URL}/movies/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Film introuvable");
+  }
+
+  return await response.json();
+}
+
+
+export async function createContent(data) {
+  const response = await fetch(`${BASE_URL}/movies`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de l'ajout");
+  }
+
+  return await response.json();
+}
+
+
+export async function updateContent(id, data) {
+  const response = await fetch(`${BASE_URL}/movies/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la modification");
+  }
+
+  return await response.json();
+}
+
+
+export async function deleteContent(id) {
+  const response = await fetch(`${BASE_URL}/movies/${id}`, {
+    method: "DELETE"
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la suppression");
+  }
+
+  return await response.json();
+}
+
+export async function getComments() {
+  const response = await fetch(`${BASE_URL}/comments`);
+
+  if (!response.ok) {
+    throw new Error("Erreur lors du chargement des commentaires");
+  }
+
+  return await response.json();
+}
+
+
+export const fetchItems = getContents;

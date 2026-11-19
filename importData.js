@@ -26,3 +26,4 @@ async function importData() {
 
 importData();
 
+console.log(importData)

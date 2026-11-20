@@ -3,7 +3,9 @@
 import { getContents } from "./api.js";
 
 const board = document.querySelector(".Admin");
+document.querySelector("#contentForm").reset();
 let items = [];
+let editId = null;
 
 
 function structurTablue(list) {
@@ -80,3 +82,30 @@ function afficheModal(film) {
     `;
 }
 
+board.addEventListener("click" , (e)=>{
+  const btn = e.target.closest(".btn-edit");
+  if(!btn) return;
+
+  const tr =btn.closest("tr");
+  const id = tr.dataset.id;
+  const film =items.find(item=> item.id == id);
+  if(!film) return;
+  const container = document.querySelector("#contentFormContainer");
+container.classList.remove("w-0", "opacity-0");
+container.classList.add("w-[30%]", "opacity-100");
+
+board.classList.remove("w-full");
+board.classList.add("w-[70%]");
+
+const layout = document.querySelector("#adminLayout");
+
+layout.classList.remove("grid-cols-1");
+layout.classList.add("grid-cols-[30%_70%]");
+
+document.querySelector("#title").value = film.title;
+document.querySelector("#image").value = film.image;
+document.querySelector("#type").value = film.type;
+document.querySelector("#year").value = film.releaseYear;
+
+  editId = film.id;
+});

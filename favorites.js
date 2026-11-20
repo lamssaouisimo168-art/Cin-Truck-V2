@@ -1,44 +1,42 @@
-// favorites.js
-const STORAGE_KEY = "favorites";
+
+const FAVORITES_KEY = "cinetrack-favorites";
 
 export function getFavorites() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
 }
 
-function saveFavorites(favs) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
+function saveFavorites(favorites) {
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
 }
 
 export function isFavorite(id) {
-  return getFavorites().some((fav) => String(fav.id) === String(id));
+  const favorites = getFavorites();
+
+  return favorites.some(item => item.id == id);
 }
 
-export function addFavorite(item) {
-  const favs = getFavorites();
-  if (favs.some((fav) => String(fav.id) === String(item.id))) return favs;
-  const updated = [...favs, item];
-  saveFavorites(updated);
-  return updated;
+export function toggleFavorite(item) {
+  let favorites = getFavorites();
+
+  if (isFavorite(item.id)) {
+    favorites = favorites.filter(fav => fav.id != item.id);
+  } else {
+    favorites.push(item);
+  }
+
+  saveFavorites(favorites);
+
+  return favorites;
 }
 
 export function removeFavorite(id) {
-  const updated = getFavorites().filter((fav) => String(fav.id) !== String(id));
-  saveFavorites(updated);
-  return updated;
+  const favorites = getFavorites().filter(item => item.id != id);
+
+  saveFavorites(favorites);
+
+  return favorites;
 }
 
-// reduce : compter les favoris par type
-export function countByType(favs) {
-  return favs.reduce(
-    (acc, fav) => {
-      acc[fav.type] = (acc[fav.type] || 0) + 1;
-      return acc;
-    },
-    { movie: 0, series: 0 }
-  );
+export function countByType(type) {
+  return getFavorites().filter(item => item.type === type).length;
 }

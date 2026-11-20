@@ -1,106 +1,111 @@
-import { isFavorite } from "./favorites.js";
+
+import { isFavorite, toggleFavorite } from "./favorites.js";
 
 function getTypeLabel(type) {
   return type === "movie" ? "Film" : "Série";
 }
 
-// callback personnalisé : createCardFn est passé en paramètre
-export function renderList(items, createCardFn, container) {
-  container.innerHTML = items.map(createCardFn).join("");
+export function renderList(items, container, createCardFn) {
+  container.innerHTML = items.map(item => createCardFn(item)).join("");
 }
 
 export function showError(container, message) {
   container.innerHTML = `
-    <p role="alert" class="col-span-full text-center text-red-500 font-bold text-xl">${message}</p>
+    <p class="text-center text-red-500 p-5">
+      ${message}
+    </p>
   `;
 }
 
 function getDetailsLine(item) {
   if (item.type === "movie") {
-    return `Durée : ${item.duration} min`;
+    return `${item.duration || "?"} minutes`;
   }
-  return `Saisons : ${item.seasons.length}`;
+
+  return `${item.seasons ? item.seasons.length : 0} saisons`;
 }
 
 export function createCard(item) {
-  const typeColor = item.type === "movie" ? "bg-orange-500" : "bg-sky-500";
-  const favColor = isFavorite(item.id) ? "text-red-600" : "text-gray-400";
-
   return `
-    <article class="group relative bg-[#1a2347] rounded-2xl shadow-lg overflow-hidden cursor-pointer transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/20" data-id="${item.id}">
-      <img src="${item.image}" alt="${item.title}" loading="lazy" class="w-full aspect-[2/3] object-cover transition duration-500 group-hover:scale-105" />
-      <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white ${typeColor}">${getTypeLabel(item.type)}</span>
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <img
+        src="${item.image}"
+        alt="${item.title}"
+        class="w-full h-64 object-cover"
+      >
 
-      <div class="p-3">
-        <h3 class="font-bold text-lg text-white truncate">${item.title}</h3>
-        <p class="text-sm text-white/60 italic">${item.releaseYear} • ${getTypeLabel(item.type)}</p>
-      </div>
+      <div class="p-4">
+        <h3 class="font-bold text-lg">${item.title}</h3>
 
-      <button class="heart-btn absolute top-2 right-2 z-10 bg-white rounded-full w-9 h-9 ${favColor}" data-id="${item.id}">
-        <i class="fa-solid fa-heart"></i>
-      </button>
-    </article>
-  `;
-}
+        <p class="text-gray-500">
+          ${getTypeLabel(item.type)} • ${item.releaseYear}
+        </p>
 
-function createModalContent(item) {
-  return `
-    <div class="relative bg-white text-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto flex flex-col md:flex-row">
-      <button id="modal-close" class="absolute top-3 right-3 bg-red-600 text-white rounded-full w-9 h-9 hover:bg-red-800">
-        <i class="fa-solid fa-x"></i>
-      </button>
-      <img src="${item.image}" alt="${item.title}" class="w-full md:w-1/2 object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none" />
-      <div class="p-6 flex flex-col gap-2">
-        <h2 class="text-3xl font-black italic">${item.title}</h2>
-        <p class="text-orange-500 font-semibold">${getTypeLabel(item.type)} • ${item.releaseYear}</p>
-        <p><span class="font-bold">${getDetailsLine(item)}</span></p>
-        <p><span class="font-bold">Genres :</span> ${item.genres.join(", ")}</p>
-        <p><span class="font-bold">Réalisateurs :</span> ${item.directors.join(", ")}</p>
-        <p><span class="font-bold">Pays :</span> ${item.productionCountries.join(", ")}</p>
-        <p class="text-gray-600 mt-2">${item.description}</p>
+        <p class="text-sm text-gray-600 mt-2">
+          ${getDetailsLine(item)}
+        </p>
+
+        <button
+          class="favorite-btn mt-3 text-xl"
+          data-id="${item.id}"
+        >
+          ${isFavorite(item.id) ? "❤️" : "🤍"}
+        </button>
+
+        <button
+          class="details-btn bg-red-500 text-white px-4 py-2 rounded-lg ml-2"
+          data-id="${item.id}"
+        >
+          Détails
+        </button>
       </div>
     </div>
   `;
 }
 
-export function closeModal() {
-  const overlay = document.getElementById("modal-overlay");
-  if (overlay) overlay.remove();
+export function createModalContent(item) {
+  return `
+    <div class="bg-white p-6 rounded-xl max-w-lg w-full">
+      <h2 class="text-2xl font-bold mb-3">${item.title}</h2>
+
+      <img
+        src="${item.image}"
+        alt="${item.title}"
+        class="w-full h-64 object-cover rounded-lg mb-4"
+      >
+
+      <p><strong>Type :</strong> ${getTypeLabel(item.type)}</p>
+      <p><strong>Année :</strong> ${item.releaseYear}</p>
+      <p><strong>Durée :</strong> ${getDetailsLine(item)}</p>
+      <p><strong>Genres :</strong> ${(item.genres || []).join(", ")}</p>
+      <p><strong>Réalisateurs :</strong> ${(item.directors || []).join(", ")}</p>
+      <p><strong>Pays :</strong> ${(item.productionCountries || []).join(", ")}</p>
+
+      <p class="mt-4">${item.description || ""}</p>
+
+      <button class="close-modal mt-5 bg-red-500 text-white px-4 py-2 rounded-lg">
+        Fermer
+      </button>
+    </div>
+  `;
 }
 
 export function openModal(item) {
-  closeModal();
-  const overlay = document.createElement("div");
-  overlay.id = "modal-overlay";
-  overlay.className = "fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4";
-  overlay.innerHTML = createModalContent(item);
-  document.body.appendChild(overlay);
+  const modal = document.createElement("div");
 
-  overlay.querySelector("#modal-close").addEventListener("click", closeModal);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) closeModal();
+  modal.className =
+    "fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50";
+
+  modal.innerHTML = createModalContent(item);
+
+  document.body.appendChild(modal);
+
+  modal.addEventListener("click", (e) => {
+    if (
+      e.target === modal ||
+      e.target.closest(".close-modal")
+    ) {
+      modal.remove();
+    }
   });
-}
-
-function createFavoriteItem(item) {
-  return `
-    <div class="flex items-center justify-between rounded-lg p-3 hover:bg-gray-100" data-id="${item.id}">
-      <span class="truncate">${item.title}</span>
-      <button class="remove-fav text-gray-500 hover:text-red-600" data-id="${item.id}">
-        <i class="fa-solid fa-x"></i>
-      </button>
-    </div>
-  `;
-}
-
-export function renderFavorites(container, favs) {
-  if (favs.length === 0) {
-    container.innerHTML = `<p class="text-gray-400 italic p-3">Aucun favori pour le moment.</p>`;
-    return;
-  }
-  container.innerHTML = favs.map(createFavoriteItem).join("");
-}
-
-export function renderFavoritesCount(container, counts) {
-  container.textContent = `${counts.movie} film(s) • ${counts.series} série(s)`;
 }

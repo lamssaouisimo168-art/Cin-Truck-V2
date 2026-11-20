@@ -1,28 +1,25 @@
 
 const BASE_URL = "https://6afad80d730c1d152f3299f7.mockapi.io/api/data/cinetrack";
 
-
 export async function getContents() {
   const response = await fetch(`${BASE_URL}/movies`);
 
   if (!response.ok) {
-    throw new Error("Erreur lors du chargement");
+    throw new Error("Erreur lors du chargement des contenus");
   }
 
   return await response.json();
 }
-
 
 export async function getContent(id) {
   const response = await fetch(`${BASE_URL}/movies/${id}`);
 
   if (!response.ok) {
-    throw new Error("Film introuvable");
+    throw new Error("Contenu introuvable");
   }
 
   return await response.json();
 }
-
 
 export async function createContent(data) {
   const response = await fetch(`${BASE_URL}/movies`, {
@@ -40,7 +37,6 @@ export async function createContent(data) {
   return await response.json();
 }
 
-
 export async function updateContent(id, data) {
   const response = await fetch(`${BASE_URL}/movies/${id}`, {
     method: "PUT",
@@ -57,7 +53,6 @@ export async function updateContent(id, data) {
   return await response.json();
 }
 
-
 export async function deleteContent(id) {
   const response = await fetch(`${BASE_URL}/movies/${id}`, {
     method: "DELETE"
@@ -67,18 +62,7 @@ export async function deleteContent(id) {
     throw new Error("Erreur lors de la suppression");
   }
 
-  return await response.json();
+  return true;
 }
-
-export async function getComments() {
-  const response = await fetch(`${BASE_URL}/comments`);
-
-  if (!response.ok) {
-    throw new Error("Erreur lors du chargement des commentaires");
-  }
-
-  return await response.json();
-}
-
 
 export const fetchItems = getContents;

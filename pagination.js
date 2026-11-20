@@ -1,41 +1,35 @@
-// pagination.js
-export const PAGE_SIZE = 8;
 
-export function getTotalPages(total) {
-  return Math.ceil(total / PAGE_SIZE);
+const itemsPerPage = 8;
+
+export function displayPage(items, page) {
+  const start = (page - 1) * itemsPerPage;
+
+  return items.slice(start, start + itemsPerPage);
 }
 
-export function paginate(items, page) {
-  const start = (page - 1) * PAGE_SIZE;
-  return items.slice(start, start + PAGE_SIZE);
-}
+export function createPagination(totalItems, currentPage, changePage) {
+  const pagination = document.querySelector("#pagination");
 
-function createPageButton(label, onClick, isActive, isDisabled) {
-  const btn = document.createElement("button");
-  btn.textContent = label;
-  btn.disabled = isDisabled;
-  btn.className = isActive
-    ? "px-4 py-2 rounded-lg bg-orange-500 text-white font-bold"
-    : "px-4 py-2 rounded-lg bg-zinc-200 hover:bg-orange-300 font-semibold disabled:opacity-40";
-  btn.addEventListener("click", onClick);
-  return btn;
-}
+  if (!pagination) return;
 
-export function renderPagination(container, currentPage, totalPages, onPageChange) {
-  container.innerHTML = "";
-  if (totalPages <= 1) return;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  container.appendChild(
-    createPageButton("«", () => onPageChange(currentPage - 1), false, currentPage === 1)
-  );
+  pagination.innerHTML = "";
 
-  for (let page = 1; page <= totalPages; page++) {
-    container.appendChild(
-      createPageButton(String(page), () => onPageChange(page), page === currentPage, false)
-    );
+  for (let i = 1; i <= totalPages; i++) {
+    const button = document.createElement("button");
+
+    button.textContent = i;
+    button.className = "px-4 py-2 m-1 rounded bg-red-500 text-white";
+
+    if (i === currentPage) {
+      button.classList.add("bg-black");
+    }
+
+    button.addEventListener("click", () => {
+      changePage(i);
+    });
+
+    pagination.appendChild(button);
   }
-
-  container.appendChild(
-    createPageButton("»", () => onPageChange(currentPage + 1), false, currentPage === totalPages)
-  );
 }

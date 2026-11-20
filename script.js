@@ -1,131 +1,100 @@
-import { fetchItems } from "./api.js";
-import { createCard, renderList, showError, openModal, closeModal, renderFavorites, renderFavoritesCount } from "./cards.js";
-import { searchItems, filterByType } from "./filter.js";
-import { paginate, getTotalPages, renderPagination } from "./pagination.js";
-import { addFavorite, removeFavorite, getFavorites, countByType } from "./favorites.js";
 
-const grid = document.getElementById("grid");
-let allItems = [];
-let currentQuery = "";
-let currentType = "all";
+import { fetchItems } from "./api.js";
+
+import {
+  createCard,
+  openModal,
+  showError
+} from "./cards.js";
+
+import {
+  toggleFavorite,
+  getFavorites
+} from "./favorites.js";
+
+import {
+  searchItems,
+  filterByType
+} from "./filter.js";
+
+import {
+  displayPage,
+  createPagination
+} from "./pagination.js";
+
+const moviesContainer = document.querySelector("#moviesContainer");
+const searchInput = document.querySelector("#searchInput");
+const filterButtons = document.querySelectorAll(".filter-btn");
+
+let movies = [];
+let filteredMovies = [];
 let currentPage = 1;
 
-const searchInput = document.getElementById("search-input");
-const searchBtn = document.getElementById("search-btn");
-const filterButtons = document.querySelectorAll(".type-btn");
-const paginationBox = document.getElementById("pagination");
-
-function update() {
-  if (allItems.length === 0) return;
-
-  const searched = searchItems(allItems, currentQuery);
-  const filtered = filterByType(searched, currentType);
-  const totalPages = getTotalPages(filtered.length);
-
-  if (filtered.length === 0) {
-    showError(grid, "Aucun résultat trouvé.");
-  } else {
-    renderList(paginate(filtered, currentPage), createCard, grid);
-  }
-
-  renderPagination(paginationBox, currentPage, totalPages, goToPage);
-}
-
-function goToPage(page) {
-  currentPage = page;
-  update();
-}
-
-function handleSearch() {
-  currentQuery = searchInput.value;
-  currentPage = 1;
-  update();
-}
-
-function setActiveFilterButton() {
-  filterButtons.forEach((btn) => {
-    const isActive = btn.dataset.type === currentType;
-    btn.classList.toggle("bg-orange-500", isActive);
-    btn.classList.toggle("bg-zinc-600", !isActive);
-  });
-}
-
-function handleFilterClick(event) {
-  currentType = event.currentTarget.dataset.type;
-  currentPage = 1;
-  setActiveFilterButton();
-  update();
-}
-
-searchInput.addEventListener("input", handleSearch);
-searchBtn.addEventListener("click", handleSearch);
-filterButtons.forEach((btn) => btn.addEventListener("click", handleFilterClick));
-
-function handleGridClick(event) {
-  const heartBtn = event.target.closest(".heart-btn");
-  if (heartBtn) {
-    event.stopPropagation();
-    toggleFavorite(heartBtn.dataset.id);
-    return;
-  }
-
-  const card = event.target.closest("article");
-  if (!card) return;
-
-  const item = allItems.find((i) => String(i.id) === String(card.dataset.id));
-  if (item) openModal(item);
-}
-
-grid.addEventListener("click", handleGridClick);
-
-function handleEscape(event) {
-  if (event.key === "Escape") closeModal();
-}
-
-document.addEventListener("keydown", handleEscape);
-
-const favList = document.getElementById("favorites-list");
-const favCount = document.getElementById("favorites-count");
-
-function refreshFavorites() {
-  const favs = getFavorites();
-  renderFavorites(favList, favs);
-  renderFavoritesCount(favCount, countByType(favs));
-}
-
-function toggleFavorite(id) {
-  const alreadyFav = getFavorites().some((fav) => String(fav.id) === String(id));
-  if (alreadyFav) {
-    removeFavorite(id);
-  } else {
-    const item = allItems.find((i) => String(i.id) === String(id));
-    if (item) addFavorite(item);
-  }
-  refreshFavorites();
-  update();
-}
-
-function handleFavListClick(event) {
-  const removeBtn = event.target.closest(".remove-fav");
-  if (!removeBtn) return;
-  removeFavorite(removeBtn.dataset.id);
-  refreshFavorites();
-  update();
-}
-
-favList.addEventListener("click", handleFavListClick);
-refreshFavorites();
-
-async function init() {
-  grid.innerHTML = `<p class="col-span-full text-center text-white/60 italic">Chargement du catalogue...</p>`;
+async function loadMovies() {
+  moviesContainer.textContent = "Chargement...";
 
   try {
-    allItems = await fetchItems();
-    update();
+    movies = await fetchItems();
+    filteredMovies = movies;
+
+    displayMovies();
   } catch (error) {
-    console.error(error);
-    showError(grid, "Impossible de charger le catalogue. Vérifiez votre connexion puis réessayez.");
+    showError(moviesContainer, error.message);
   }
 }
 
-init();
+function displayMovies() {
+  const pageMovies = displayPage(filteredMovies, currentPage);
+
+  moviesContainer.innerHTML = pageMovies.map(movie => createCard(movie)).join("");
+
+  createPagination(
+    filteredMovies.length,
+    currentPage,
+    (page) => {
+      currentPage = page;
+      displayMovies();
+    }
+  );
+}
+
+// Recherche
+searchInput.addEventListener("input", () => {
+  filteredMovies = searchItems(movies, searchInput.value);
+  currentPage = 1;
+  displayMovies();
+});
+
+// Filtrer
+filterButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    const type = button.dataset.type;
+
+    filteredMovies = filterByType(movies, type);
+    currentPage = 1;
+    displayMovies();
+  });
+});
+
+// Actions des cartes
+moviesContainer.addEventListener("click", (e) => {
+  const favoriteButton = e.target.closest(".favorite-btn");
+  const detailsButton = e.target.closest(".details-btn");
+
+  if (favoriteButton) {
+    const id = favoriteButton.dataset.id;
+    const movie = movies.find(item => item.id == id);
+
+    toggleFavorite(movie);
+    displayMovies();
+  }
+
+  if (detailsButton) {
+    const id = detailsButton.dataset.id;
+    const movie = movies.find(item => item.id == id);
+
+    if (movie) openModal(movie);
+  }
+});
+
+loadMovies();
